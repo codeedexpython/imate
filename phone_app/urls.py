@@ -9,5 +9,6 @@ urlpatterns = [
     path('phones/<int:pk>/delete/', views.phone_delete, name='phone-delete'),
     path('phones/search/', views.phone_search, name='phone-search'),
     path('phones/stock/', views.phone_search_stock, name='phone-search-stock'),
+    path('phones/filter/', views.filter_location, name='filter-location'),
 
 ]

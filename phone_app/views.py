@@ -23,11 +23,7 @@ def phone_create(request):
 
 @api_view(['GET'])
 def phone_detail(request, pk):
-    try:
-        phone = Phone.objects.get(pk=pk)
-    except Phone.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-
+    phone = Phone.objects.get(pk=pk)
     serializer = PhoneSerializer(phone)
     return Response(serializer.data)
 
@@ -52,36 +48,27 @@ def phone_delete(request, pk):
         phone = Phone.objects.get(pk=pk)
     except Phone.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
-
     phone.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 @api_view(['GET'])
 def phone_search(request):
-
     phone_name = request.GET.get('name', None)
-
     if not phone_name:
         return Response({'error': 'Parameter "name" is required.'}, status=status.HTTP_400_BAD_REQUEST)
-
     try:
         phones = Phone.objects.filter(name__icontains=phone_name)
-
         if not phones.exists():
             return Response({'error': 'No phones found with the provided name.'}, status=status.HTTP_404_NOT_FOUND)
-
         serializer = PhoneSerializer(phones, many=True)
-
         response_data = []
         for phone in serializer.data:
             response_data.append({
                 'phone_name': phone['name'],
                 'availability': phone['location'],
             })
-
         return Response(response_data, status=status.HTTP_200_OK)
-
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
@@ -92,9 +79,7 @@ def phone_search_stock(request):
         phones = Phone.objects.filter(quantity=1)
         if not phones.exists():
             return Response({'message': 'No phones with quantity 1 found.'}, status=status.HTTP_404_NOT_FOUND)
-
         serializer = PhoneSerializer(phones, many=True)
-
         response_data = []
         for phone in serializer.data:
             if phone['quantity'] == 1:
@@ -109,5 +94,20 @@ def phone_search_stock(request):
 
         return Response(response_data, status=status.HTTP_200_OK)
 
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['GET'])
+def filter_location(request):
+    location = request.GET.get('location', None)
+    if not location:
+        return Response({'error': 'Parameter "location" is required.'}, status=status.HTTP_400_BAD_REQUEST)
+    try:
+        phones = Phone.objects.filter(location__iexact=location)
+        if not phones.exists():
+            return Response({'message': f'No phones found in location: {location}.'}, status=status.HTTP_404_NOT_FOUND)
+        serializer = PhoneSerializer(phones, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
